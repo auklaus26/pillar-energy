@@ -961,6 +961,7 @@ if (typeof window !== 'undefined') {
   max-width: 1120px;
   margin: 0 auto;
   padding: 56px 16px;
+  scroll-margin-top: 72px;
 }
 
 .section-head {
