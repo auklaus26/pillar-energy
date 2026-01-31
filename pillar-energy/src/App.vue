@@ -26,6 +26,10 @@
           <!-- <el-menu-item index="zh">中文</el-menu-item> -->
         </el-menu>
 
+        <el-button class="menu-toggle" @click="mobileMenuOpen = true" aria-label="Open menu">
+          <span class="menu-icon">...</span>
+        </el-button>
+
         <div class="header-actions">
           <el-tooltip content="Default: English" placement="bottom">
             <el-switch
@@ -37,11 +41,32 @@
             />
           </el-tooltip>
 
-          <el-button type="primary" class="cta" @click="scrollTo('contact')">
+          <!-- <el-button type="primary" class="cta" @click="scrollTo('contact')">
             Contact Us
-          </el-button>
+          </el-button> -->
         </div>
       </el-header>
+
+      <el-drawer
+        v-model="mobileMenuOpen"
+        direction="rtl"
+        size="260px"
+        :with-header="false"
+        class="mobile-drawer"
+      >
+        <el-menu
+          mode="vertical"
+          :default-active="active"
+          class="mobile-menu"
+          @select="onMobileSelect"
+        >
+          <el-menu-item index="home">Home</el-menu-item>
+          <el-menu-item index="about">About Us</el-menu-item>
+          <el-menu-item index="services">Services</el-menu-item>
+          <el-menu-item index="projects">Projects</el-menu-item>
+          <el-menu-item index="contact">Contact</el-menu-item>
+        </el-menu>
+      </el-drawer>
 
       <el-main class="app-main">
         <!-- HOME -->
@@ -465,7 +490,7 @@
         </section>
 
         <!-- 中文页面（简化版） -->
-        <section :id="ids.zh" class="section">
+        <section v-if="isZh" :id="ids.zh" class="section">
           <div class="section-head">
             <h2 class="section-title">中文页面（简化版）</h2>
             <p class="section-sub">英文为默认语言，中文为辅助信任页面，不做完全镜像。</p>
@@ -563,7 +588,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref } from 'vue'
+import { computed, nextTick, reactive, ref } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage } from 'element-plus'
 
@@ -579,6 +604,7 @@ const ids: Record<NavKey, string> = {
 }
 
 const active = ref<NavKey>('home')
+const mobileMenuOpen = ref(false)
 
 /**
  * Language
@@ -747,17 +773,23 @@ function onSelect(key: string) {
   scrollTo(key as NavKey)
 }
 
+function onMobileSelect(key: string) {
+  onSelect(key)
+  mobileMenuOpen.value = false
+}
+
 function scrollTo(key: NavKey) {
   const el = document.getElementById(ids[key])
   if (!el) return
   el.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
-function onLangToggle() {
+async function onLangToggle() {
   // Default language is English. Chinese is an auxiliary section, not a full mirror.
   // Toggle simply navigates to Chinese section when switched on.
   if (isZh.value) {
     active.value = 'zh'
+    await nextTick()
     scrollTo('zh')
   } else {
     active.value = 'home'
@@ -887,6 +919,27 @@ if (typeof window !== 'undefined') {
   flex: 1;
   border-bottom: none;
   background: transparent;
+}
+
+.menu-toggle {
+  display: none;
+  border-radius: 12px;
+  margin-left: auto;
+  padding: 8px 10px;
+  min-width: 40px;
+}
+
+.menu-icon {
+  letter-spacing: 2px;
+  font-weight: 700;
+}
+
+.mobile-menu {
+  border-right: none;
+}
+
+.mobile-drawer :deep(.el-drawer__body) {
+  padding: 12px 10px;
 }
 
 .header-actions {
@@ -1187,6 +1240,15 @@ if (typeof window !== 'undefined') {
   }
   .brand-sub {
     display: none;
+  }
+  .top-menu {
+    display: none;
+  }
+  .menu-toggle {
+    display: inline-flex;
+  }
+  .header-actions .cta {
+    padding: 8px 12px;
   }
   .hero-title {
     font-size: 38px;
